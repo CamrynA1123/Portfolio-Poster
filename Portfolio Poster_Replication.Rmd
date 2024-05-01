@@ -1,0 +1,207 @@
+---
+main_topsize: 0.2 #percent coverage of the poster
+main_bottomsize: 0.1
+#ESSENTIALS
+title: "How does development aid impact Nigeria's maternal mortality rate?"
+author:
+  - name: 'Camryn Allen'
+    affil: 1
+    main: true
+    orcid: '0000-0002-1099-3857'
+    email: ca9134a@american.edu
+affiliation:
+  - num: 1
+    address: Department of Politics, Governance, and Economics | School of International Service (SIS) | American University
+main_findings:
+  - "Nigeria's Astronomical Maternal Deaths Unaffected by World Bank Aid"
+primary_colour: "#925653"
+secondary_colour: "#F7A5A5"
+accent_colour: "#841921"
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: yes
+    pandoc_args: --mathjax
+    number_sections: false
+bibliography: packages.bib
+link-citations: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(rmdformats)
+library(patchwork)
+library(reshape2)
+```
+
+# Introduction
+
+According to WHO, globally, a woman dies from pregnancy-related causes every two minutes (2023). The World Health Organization (WHO) defines a "maternal death" as "a female death from any cause related to or aggravated by pregnancy or its management (excluding accidental or incidental causes) during pregnancy and childbirth or within 42 days to a year after termination of pregnancy." More than two thirds (69%) of maternal deaths occur in Africa; a continent that receives more than $8 billion in aid annually from the United States alone (Congressional Research Service, 2023). This work investigates Nigeria's staggering annual maternal deaths (the most on the continent) despite being one of Africa's top recipients of U.S. aid in 2022 and a top 5 recipient of U.S. aid for democracy, human rights, and governance since 2018. Essentially, what is the impact of foreign development aid on annual maternal deaths in Nigeria? 
+
+Due to the accessibility of its data recording aid to Nigeria, the World Bank (WB) has been chosen as the aid donor with which to address this question. Exploring the relationship between aid and maternal deaths in Nigeria will support effective solutions to pregnancy-related mortality for birthing persons everywhere. 
+
+The expectation is that the World Bank's annual aid to Nigeria will have a negative impact on the country's maternal deaths (i.e. an increase in WB aid will lead to a decrease in Nigeria's maternal deaths).
+
+```{r, include=FALSE}
+knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
+```
+
+```{r, eval=TRUE, echo=FALSE, fig.height=5, fig.cap='This bar graph depicts data of 20 African countries with the highest maternal deaths in 2019 from the WHO [Trends in maternal mortality 2000 to 2020 estimates by WHO, UNICEF, UNFPA, World Bank Group and UNDESA/Population Division 2023 data set](https://www.who.int/publications/i/item/9789240068759).'} 
+
+#MAIN GRAPH: MATERNAL DEATHS ACROSS COUNTRIES
+MatDeath = read_csv('MatDeath.csv')
+
+AfrMatDeath = 
+  MatDeath %>%
+  filter(`Country Name` %in% c('Angola', 'Benin', 'Bostswana', "Cote d'Ivoire", 'Cameroon', 'Congo, Dem. Rep.', 'Ethiopia', 'Ghana', 'Guinea', 'Equitorial Guinea', 'Kenya', 'Madagascar', 'Mali', 'Malawi', 'Niger', 'Nigeria', 'Sudan', 'Somalia', 'South Sudan', 'Chad', 'Tanzania', 'Uganda'))
+
+AfrMatDeath$`Indicator Name` <- NULL
+AfrMatDeath$`Country Code` <- NULL
+AfrMatDeath$`Indicator Code` <- NULL
+names(AfrMatDeath)[names(AfrMatDeath) == "2020"] <- "CovidYear"
+names(AfrMatDeath)[names(AfrMatDeath) == "2019"] <- "CovidStart"
+AfrMatDeath$`Country Name` <- reorder(AfrMatDeath$`Country Name`, +AfrMatDeath$CovidStart)
+
+AfrMatDeath |>
+  ggplot(aes(x = CovidStart, y = `Country Name`))+ 
+  geom_bar(stat = 'identity', fill = '#E4257A', width = 0.85) + 
+  ggtitle('Top 20 Leading Maternal Deaths in Africa (2019)') + 
+  labs(
+    x = 'Annual Maternal Deaths',
+    y = 'Country'
+  ) + 
+  geom_text(aes(label = CovidStart), vjust = 0.5, hjust = -0.1, size = 2.75) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, 0.08)),
+    breaks = c(0, 20000, 40000, 60000, 80000),
+    labels = c('0', '20,000', '40,000', '60,000', '80,000')
+  ) +
+  theme_bw() + 
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(
+      hjust = 0.5,
+      face = 'bold'),
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_text(face = 'bold'),
+    axis.title.y = element_text(face = 'bold')
+  ) 
+```
+ Nigeria leads the continent in maternal deaths, reaching a staggering 86,000 in 2019 alone and more than quadrupling the Democratic Republic of the Congo. This peak in Nigmeria accounted for more than a quarter of the world's maternal deaths that year.
+
+# Methods
+
+The project utilizes two data sets to investigate the relationship between Nigeria's maternal deaths and WB aid to Nigeria. First, data on Nigeria's maternal deaths have been isolated from the WHO 2023 report, "Trends in maternal mortality 2000 to 2020: estimates by WHO, UNICEF, UNFPA, World Bank Group and UNDESA/Population Division", which presents the most up-to-date and internationally comparable data for maternal mortality of 185 WHO Member States between 2000 and 2020. Data inputs for this measurement include civil registration and vital statistics, specialized studies on maternal mortality, and surveys and other miscellaneous data sources for maternal mortality. Secondly, WB aid to Nigeria during the same time frame has been pulled from the "Net Official Development Assistance and Official Aid Received (Current US$) - Nigeria" 2024 data set. Key variables in this project's graphs and tables include: 1) Deaths: annual maternal deaths within Nigeria; 2) AidDollars: WB annual aid to Nigeria; and 3) Year: Individual year of data collection. 
+
+```{r, echo=FALSE, eval=TRUE, fig.height=4, fig.cap='The data for this graph have been isolated from the the WHO [Trends in maternal mortality 2000 to 2020 estimates by WHO, UNICEF, UNFPA, World Bank Group and UNDESA/Population Division 2023 data set](https://www.who.int/publications/i/item/9789240068759).'}
+library(readxl)
+library(readr)
+NMDeaths <- read_excel('NMDeaths.xlsx')
+WBNAid <- read_excel('WBNAid.xlsx')
+
+DeathAid <- merge(NMDeaths, WBNAid, by = 'Year', all = TRUE)
+names(DeathAid)[names(DeathAid) == "WB Aid"] <- "AidDollars"
+
+NMDPlot = 
+  NMDeaths |>
+  ggplot(aes(x = Year, y = Deaths)) + 
+  geom_line(
+    color = '#E4257A'
+  ) +
+  geom_point() + 
+  ggtitle('Maternal Deaths in Nigeria (2000 - 2020)') + 
+  labs(
+    y = 'Annual Maternal Deaths'
+  ) +
+  scale_y_continuous(
+    breaks = c(60000, 65000, 70000, 75000, 80000, 85000), #How to make y axis start at 60K?
+    labels = c('60K', '65K','70K', '75K', '80K', '85K')
+  ) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = 'bold'),
+    axis.title.x = element_text(face = 'bold'),
+    axis.title.y = element_text(face = 'bold')
+  )
+NMDPlot #How to label points at 2000, 2005, 2010, 2015, 2020?
+
+```
+
+Maternal deaths in Nigeria have gradually increased since 2000, seeming to peak every four to five years. The COVID-19 pandemic is a probable influencer of the highest mortality in 2019.
+
+
+# Results
+
+The table below depicts WB aid's minimal influence on maternal deaths in Nigeria. However, this statistical test should not be interpretted as writing off development aid's impact on maternal deaths.  
+
+```{r, fig.height=2, eval=TRUE, echo=FALSE}
+library(readxl)
+library(readr)
+library(knitr)
+library(kableExtra)
+library(stargazer)
+
+NMDeaths <- read_excel('NMDeaths.xlsx')
+WBNAid <- read_excel('WBNAid.xlsx')
+DeathAid <- merge(NMDeaths, WBNAid, by = 'Year', all = TRUE)
+names(DeathAid)[names(DeathAid) == "WB Aid"] <- "AidDollars"
+
+model <- lm(Deaths ~ AidDollars, data = DeathAid)
+```
+
+```{r, fig.align='center', eval=TRUE, echo=FALSE}
+stargazer::stargazer(
+  model,
+  keep.stat = 'n', 
+  type = 'text' # change to html in Rmd
+)  
+```
+
+```{r, echo=FALSE, eval=TRUE}
+library(readxl)
+library(readr)
+NMDeaths <- read_excel('NMDeaths.xlsx')
+WBNAid <- read_excel('WBNAid.xlsx')
+
+DeathAid <- merge(NMDeaths, WBNAid, by = 'Year', all = TRUE)
+names(DeathAid)[names(DeathAid) == "WB Aid"] <- "AidDollars"
+DeathAid <- DeathAid[DeathAid$AidDollars < 6000000000, ] #How to fix the Y axis labels?? Do I limit or have entire dataset?
+DeathAid$Money <- DeathAid$AidDollars / 1000000000
+
+ggplot(DeathAid, aes(y = Deaths, x = Money)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = F, color = '#E4257A') +
+  ggtitle('A Relationship between Maternal Deaths and World Bank Aid in Nigeria') + 
+  labs(
+    x = 'Aid USD (Billions)',
+    y = 'Annual Maternal Deaths'
+  ) +
+  scale_y_continuous(
+    breaks = c(60000, 65000, 70000, 75000, 80000, 85000), #How to make y axis start at 60K?
+    labels = c('60K', '65K','70K', '75K', '80K', '85K')
+  ) +
+  theme_bw() + 
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = 'bold'),
+    axis.title.x = element_text(face = 'bold'),
+    axis.title.y = element_text(face = 'bold')
+  )
+
+```
+
+The graph above reveals a positive correlation between WB aid and maternal deaths in Nigeria. Despite the statistical tests reflecting that WB aid has an extremely minimal influence on maternal deaths in Nigeria, a trend of worsening humanitarian issues attracting increasingly higher amounts of foreign aid may be present. This most likely explains the positive relationship between WB aid and maternal deaths. From these results, it can be concluded that WB aid has designated and raised development aid to Nigeria in general over the past two decades, however this aid has not yet caused a significant decrease in Nigeria's annual maternal deaths. More research should be conducted to explore root causes and obstacles that explain why gradual increases in development aid to Nigeria correlate to or align with a continual increase in maternal death in Nigeria.
